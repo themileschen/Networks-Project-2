@@ -10,15 +10,15 @@ import time
 import psutil   # to access system details and process utilities
 from prettytable import PrettyTable
 from prettytable import DOUBLE_BORDER
+
 import pandas as pd 
-import matplotlib.pyplot as plt
 
 # Units of memory sizes
 size = ['bytes', 'KB', 'MB', 'GB', 'TB']
 
 # Create empty DataFrames 
-inout_df = pd.DataFrame(columns=['Total Received (bytes)', 'Receiving (bytes/sec)', 'In Packet Dropping (%)',
-                                 'Total Sent (bytes)', 'Sending (bytes/sec)', 'Out Packet Dropping (%)'])
+inout_df = pd.DataFrame(columns=['Total Received', 'Receiving', 'In Packet Dropping',
+                                 'Total Sent', 'Sending', 'Out Packet Dropping'])
 socket_df = pd.DataFrame(columns=['Total', 'inet', 'TCP', 'UDP'])
 
 # Function that returns bytes in a readable format
@@ -46,12 +46,12 @@ def printData():
     print(card)
     # Add info to end of DataFrame
     inout_df.loc[len(inout_df)] = [
-        netStats2.bytes_recv,
-        downloadStat,
-        f"{recPackLost:.2f}",
-        netStats2.bytes_sent,
-        uploadStat,
-        f"{outPackLost:.2f}"
+        getSize(netStats2.bytes_recv),
+        getSize(downloadStat),
+        f"recPackLost:.2f",
+        getSize(netStats2.bytes_sent),
+        getSize(uploadStat),
+        f"outPackLost:.2f"
     ]
 
 # Prints socekt data on the terminal
@@ -130,32 +130,5 @@ while i < 10:
 
     i = i + 1
 
-# Show DataFrames (summary of tabular data)
-print(inout_df)
-print(socket_df)
-
-# Plot graphs 
-
-plt.figure()
-plt.plot(inout_df.index, inout_df['Total Received (bytes)'], label = 'Total Received')
-plt.plot(inout_df.index, inout_df['Total Sent (bytes)'], label = 'Total Sent')
-plt.ylabel('Data (bytes)')
-plt.title('Total Data Sent and Received')
-plt.legend()
-
-plt.figure()
-plt.plot(inout_df.index, inout_df['Receiving (bytes/sec)'], label = 'Receiving')
-plt.plot(inout_df.index, inout_df['Sending (bytes/sec)'], label = 'Sending')
-plt.ylabel('Bytes/sec')
-plt.title('Sending and Receiving Rates')
-plt.legend()
-
-plt.figure()
-plt.plot(socket_df.index, socket_df['Total'], label = 'Total')
-plt.plot(socket_df.index, socket_df['inet'], label = 'inet')
-plt.plot(socket_df.index, socket_df['TCP'], label = 'TCP')
-plt.plot(socket_df.index, socket_df['UDP'], label = 'UDP')
-plt.ylabel('Number of Connections')
-plt.legend()
-
-plt.show()
+inout_df
+socket_df

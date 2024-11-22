@@ -1,4 +1,8 @@
+## Running the program
+`sudo python network_monitor_1.py`
+
 ## Using iperf3 
+Used to generate artificial traffic 
 - Terminal 1: server
     - `iperf3 -s`
 - Terminal 2: client
