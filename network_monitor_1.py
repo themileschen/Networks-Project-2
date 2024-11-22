@@ -1,5 +1,5 @@
 '''
-Basic network monitor using psutil with sending/receiving stats 
+Basic network monitor and visualization using psutil with sending/receiving stats and socket connections
 
 https://pyseek.com/2022/10/create-a-network-traffic-monitor-using-python/
 https://www.geeksforgeeks.org/psutil-module-in-python/
@@ -12,6 +12,13 @@ from prettytable import PrettyTable
 from prettytable import DOUBLE_BORDER
 import pandas as pd 
 import matplotlib.pyplot as plt
+import sys  # command line args 
+
+# Get the time from user 
+if len(sys.argv) != 2:
+    print("Usage: python network_monitor_1.py <time of data collection>")
+    exit(1)
+TIME = int(sys.argv[1])
 
 # Units of memory sizes
 size = ['bytes', 'KB', 'MB', 'GB', 'TB']
@@ -92,10 +99,10 @@ dropout = netStats1.dropout
 # Get data continuously 
 # while True:
 
-# Get data for 10 seconds
+# Get data for user-defined time
 i = 0
-while i < 10:
-    time.sleep(1)   # delay for 2 seconds
+while i < TIME:
+    time.sleep(1)   # delay for 1 second
 
     # Clear terminal
     os.system('clear')
@@ -139,6 +146,7 @@ print(socket_df)
 plt.figure()
 plt.plot(inout_df.index, inout_df['Total Received (bytes)'], label = 'Total Received')
 plt.plot(inout_df.index, inout_df['Total Sent (bytes)'], label = 'Total Sent')
+plt.xlabel('Time')
 plt.ylabel('Data (bytes)')
 plt.title('Total Data Sent and Received')
 plt.legend()
@@ -146,6 +154,7 @@ plt.legend()
 plt.figure()
 plt.plot(inout_df.index, inout_df['Receiving (bytes/sec)'], label = 'Receiving')
 plt.plot(inout_df.index, inout_df['Sending (bytes/sec)'], label = 'Sending')
+plt.xlabel('Time')
 plt.ylabel('Bytes/sec')
 plt.title('Sending and Receiving Rates')
 plt.legend()
@@ -155,7 +164,9 @@ plt.plot(socket_df.index, socket_df['Total'], label = 'Total')
 plt.plot(socket_df.index, socket_df['inet'], label = 'inet')
 plt.plot(socket_df.index, socket_df['TCP'], label = 'TCP')
 plt.plot(socket_df.index, socket_df['UDP'], label = 'UDP')
+plt.xlabel('Time')
 plt.ylabel('Number of Connections')
+plt.title('Socket Connections')
 plt.legend()
 
 plt.show()
