@@ -13,6 +13,16 @@ import pandas as pd
 from collections import defaultdict    # provides default values for missing keys 
 from threading import Thread 
 from datetime import datetime 
+import sys  # command line args 
+
+# Get the threshold from user (or use default)
+if len(sys.argv) != 2:
+    BANDWIDTH = 0.5
+elif (float(sys.argv[1]) < 0) | (float(sys.argv[1]) > 1):
+    print("Threshold must be a proportion between 0 and 1")
+    exit(1)
+else:
+    BANDWIDTH = float(sys.argv[1])
 
 # Get the MAC addresses of all network interfaces on the machine
 ifaces = conf.ifaces
@@ -82,6 +92,8 @@ def get_connections():
 def print_pid_to_traffic():
     global traffic_df
     processes = []  # Initialize list of processes
+    total_bandwidth = 0     # Total current bandwidth consumed 
+    process_bandwidth = pd.DataFrame(columns=['pid', 'bandwidth'])  # Current bandwidth consumed 
     for pid, traffic in pid_to_traffic.items():
         # pid is integer; traffic is a list of total upload and download size
         try:
@@ -98,7 +110,7 @@ def print_pid_to_traffic():
         # Construct dictionary to store process info
         process = {
             'pid': pid, 'name': name, 'create_time': create_time, 
-            'Upload': traffic[0], 'Download': traffic[1]
+            'Upload': traffic[0], 'Download': traffic[1], 'Bandwidth Hog': False
         }
         try:
             # Calculate upload and download speeds (subtract old stats)
@@ -108,13 +120,22 @@ def print_pid_to_traffic():
             # If first time running function, the speed is just the current traffic
             process['Upload Speed'] = traffic[0]
             process['Download Speed'] = traffic[1]
+        # Update bandwidth metrics 
+        current_bandwidth = process['Upload Speed'] + process['Download Speed']
+        total_bandwidth = total_bandwidth + current_bandwidth
+        process_bandwidth.loc[len(process_bandwidth)] = [pid, current_bandwidth]
         processes.append(process)   # Append to list 
-    df = pd.DataFrame(processes)  # Construct DataFrame
+    # Set up DataFrame
+    df = pd.DataFrame(processes)  
     try:
         df = df.set_index('pid')
         df.sort_values('Download', inplace=True, ascending=False)
     except KeyError as e:
         pass    # DataFrame empty
+    # Update bandwidth hogs 
+    for _, row in process_bandwidth.iterrows():
+        if (float(row['bandwidth']) / total_bandwidth > BANDWIDTH):
+            df.loc[row['pid'], 'Bandwidth Hog'] = True
     printing_df = df.copy()     # Copy for fancy printing
     try:    # apply get_size to scale stats
         printing_df['Download'] = printing_df['Download'].apply(getSize)

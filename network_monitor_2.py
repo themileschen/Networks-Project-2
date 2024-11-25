@@ -20,8 +20,13 @@ def getSize(bytes):
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
 
+NETWORK_LIMIT = 100000000   # 100 MB (standard limit)
+NETWORK_LIMIT_TEST = 50000     # 50 KB for testing
+
 # Get network I/O statistics as a namedtuple 
 netStats1 = psutil.net_io_counters(pernic=True)    # pernic=True: per interface
+
+current_usage = 0
 
 # Get data continuously
 while True:
@@ -44,9 +49,15 @@ while True:
             'Total Sent': getSize(netStats2[iface].bytes_sent),
             'Sending': f"{getSize(uploadStat)}/s"
         })
+        current_usage = current_usage + uploadStat + downloadStat
+
+    if (current_usage > NETWORK_LIMIT_TEST):
+        print("Network limit exceeded")
+        exit(1)
 
     # Reset 
     netStats1 = netStats2
+    current_usage = 0
 
     # Construct DataFrame with columns sorted 
     df = pd.DataFrame(data)
