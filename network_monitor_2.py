@@ -20,8 +20,8 @@ def getSize(bytes):
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
 
-NETWORK_LIMIT = 100000000   # 100 MB (standard limit)
-NETWORK_LIMIT_TEST = 50000     # 50 KB for testing
+NETWORK_LIMIT = 100 * 1024 * 1024   # 100 MB (standard limit)
+NETWORK_LIMIT_TEST = 50 * 1024     # 50 KB for testing
 
 # Get network I/O statistics as a namedtuple 
 netStats1 = psutil.net_io_counters(pernic=True)    # pernic=True: per interface

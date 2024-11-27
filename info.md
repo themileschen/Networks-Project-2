@@ -1,6 +1,6 @@
 ## Running the program
-`sudo python network_monitor_1.py <time>`
-`sudo python network_monitor_2.py`
+`sudo python network_monitor_1.py <time>`\
+`sudo python network_monitor_2.py`\
 `sudo python network_monitor_3.py <threshold>` (or use default threshold of 0.5)
 
 ## Using iperf3 
@@ -15,3 +15,6 @@ Used to generate artificial traffic
 - lo0: loopback
 - awdl0: Apple Wireless Direct Link 
 - utun#: used by third-party networking applications
+
+## Throttling with PF 
+- `pfctl.txt` stores the `/etc/pf.conf` file          
