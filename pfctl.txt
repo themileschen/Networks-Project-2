@@ -1,7 +1,6 @@
 UW PICO 5.09                       File: /etc/pf.conf                         
 
 # Custom rules
-set skip on en0
 table <pid_table> persist
 
 # Default PF configuration file.

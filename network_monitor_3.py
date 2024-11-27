@@ -1,9 +1,13 @@
 '''
-Basic network monitor using psutil and scapy with sending/receiving stats by process
+Basic network monitor using psutil and scapy with sending/receiving stats by process, including hogging flag
 
 network_monitor_2.py
 https://thepythoncode.com/article/make-a-network-usage-monitor-in-python
-Throttling: used significant help from ChatGPT and Perplexity AI 
+
+
+Extension with throttling: use pfctl to manage the Packet Filter (PF) firewall on macOS to slow down hogging processes
+
+Throttling: used significant assistance from ChatGPT and Perplexity AI 
 '''
 
 from scapy.all import *
@@ -49,6 +53,13 @@ throttled_pids = set()
 # Log file to track of throttling information
 LOG_FILE = 'throttling_log.txt'
 
+# Clear the output file of any existing contents from previous runs (using write mode)
+with open(LOG_FILE, 'w') as log_file:
+    pass
+
+# Get program start time
+START_TIME = datetime.now()
+
 # Units of memory sizes
 size = ['bytes', 'KB', 'MB', 'GB', 'TB']
 
@@ -59,24 +70,31 @@ def getSize(bytes):
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
 
-# To slow-down processes that are hogging bandwidth
-def throttle_bandwidth(pid, rate='200Kbit/s'):
-    with open(LOG_FILE, 'w') as log_file:   # write mode: any existing file contents are overwritten
-        # Identify the IP/port for the process (one process can have many connections)
+# To slow down processes that are hogging bandwidth
+def throttle_bandwidth(pid, bandwidth, rate='200Kbit/s'):
+    with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
-            pipe_id = pid   # Unique pipe ID for each process
-
-            # Create new anchor for PID 
+            # Create new anchor for PID (to create PF rules)
             anchor_name = f"throttle_{pid}"
-            subprocess.run(f"sudo pfctl -a {anchor_name} -f /dev/stdin",
-                           input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}""".encode(),
-                           shell=True, check=True)
+
+            # Rule configuration passed to pfctl, which interacts with the PF 
+            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf.conf",
+                           input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
+                                pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
+                                pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}""".encode(),
+                                shell=True, check=True)
+                # /etc/pf.conf: the configuration file for PF 
+                # <throttled_{pid}> table holds the throttled PIDs 
+                # queue throttle_{pid} to apply bandwidth limits 
+                # pass out (outgoing) and pass in (incoming) traffic 
+                # persist: ensures table and its contents persist after PF reload 
             
             # Add process to the throttled table
-            subprocess.run(f"sudo pfctl -a {anchor_name} -t throttled_{pipe_id} -T add {pipe_id}",
+            subprocess.run(f"sudo pfctl -a {anchor_name} -t throttled_{pid} -T add {pid}",
                            shell=True, check=True)
             
-            msg = f"Throttled PID {pid} to {rate}\n"
+            time_update = datetime.now() - START_TIME
+            msg = f"Throttled PID {pid} to {rate}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
 
             throttled_pids.add(pid)     # add to set of currently throttled processes
@@ -85,21 +103,21 @@ def throttle_bandwidth(pid, rate='200Kbit/s'):
             error_msg = f"Failed to throttle PID {pid}: {e}\n"
             log_file.write(error_msg)
 
-# write throttling message to output file (along with current speed)
-
-
 # Remove throttling for processes that are no longer hogging
-def remove_throttle(pid):
-    with open(LOG_FILE, 'w') as log_file:
+def remove_throttle(pid, bandwidth):
+    with open(LOG_FILE, 'a') as log_file:
         try:
-            pipe_id = pid
-            subprocess.run(f"sudo pfctl -t pid_table -T delete {pipe_id}", shell=True, check=True)
-            subprocess.run(f"sudo pfctl pipe {pipe_id} delete")
+            anchor_name = f"throttle_{pid}"
 
+            # Remove the anchor for the PID
+            subprocess.run(f"sudo pfctl -a {anchor_name} -F all",
+                           shell=True, check=True)
+            
             # Remove from throttled set 
             throttled_pids.remove(pid)
 
-            msg = f"Removed throttle for PID {pid}\n"
+            time_update = datetime.now() - START_TIME
+            msg = f"Removed throttle for PID {pid}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
         except Exception as e:
             # print(f"Failed to remove throttle for PID {pid}: {e}")
@@ -149,7 +167,7 @@ def print_pid_to_traffic():
     processes = []  # Initialize list of processes
     total_bandwidth = 0     # Total current bandwidth consumed 
     process_bandwidth = pd.DataFrame(columns=['pid', 'bandwidth'])  # Current bandwidth consumed 
-    for pid, traffic in pid_to_traffic.items():
+    for pid, traffic in list(pid_to_traffic.items()):   # list: create static items to iterate (prevent concurrent thread Runtime error)
         # pid is integer; traffic is a list of total upload and download size
         try:
             p = psutil.Process(pid)     # Get process object 
@@ -187,18 +205,21 @@ def print_pid_to_traffic():
         df.sort_values('Download', inplace=True, ascending=False)
     except KeyError as e:
         pass    # DataFrame empty
+
     # Update bandwidth hogs 
     for _, row in process_bandwidth.iterrows():
         curr_pid = row['pid']
         the_bandwidth = float(row['bandwidth'])
         if (the_bandwidth / total_bandwidth > BANDWIDTH):
             df.loc[curr_pid, 'Bandwidth Hog'] = True
-            if (the_bandwidth > (200 * 1024)):  # Only throttle if it is a) hogging, and b) exceeds 200 KB/s
-                throttle_bandwidth(curr_pid)
+            if ((the_bandwidth > (200 * 1024)) & (curr_pid not in throttled_pids)):  # Only throttle if it is a) hogging, and b) exceeds 200 KB/s, and c) the process is not already being throttled
+                throttle_bandwidth(curr_pid, the_bandwidth)
         elif (curr_pid in throttled_pids):   # Currently throttled, but no longer hogging
-            remove_throttle(curr_pid)
+            remove_throttle(curr_pid, the_bandwidth)
+
+    # Print 
     printing_df = df.copy()     # Copy for fancy printing
-    try:    # apply get_size to scale stats
+    try:    # apply getSize to scale stats
         printing_df['Download'] = printing_df['Download'].apply(getSize)
         printing_df['Upload'] = printing_df['Upload'].apply(getSize)
         printing_df['Download Speed'] = printing_df['Download Speed'].apply(getSize).apply(lambda s: f"{s}/s")  # Format to per-second 

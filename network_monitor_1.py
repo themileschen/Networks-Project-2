@@ -13,12 +13,17 @@ from prettytable import DOUBLE_BORDER
 import pandas as pd 
 import matplotlib.pyplot as plt
 import sys  # command line args 
+from datetime import datetime, timedelta
 
 # Get the time from user 
 if len(sys.argv) != 2:
-    print("Usage: python network_monitor_1.py <time of data collection>")
+    print("Usage: python network_monitor_1.py <time of data collection in seconds>")
     exit(1)
 TIME = int(sys.argv[1])
+
+# Get program start time and end time
+START_TIME = datetime.now()
+END_TIME = START_TIME + timedelta(seconds=TIME)
 
 # Units of memory sizes
 size = ['bytes', 'KB', 'MB', 'GB', 'TB']
@@ -99,9 +104,8 @@ dropout = netStats1.dropout
 # Get data continuously 
 # while True:
 
-# Get data for user-defined time
-i = 0
-while i < TIME:
+# Get data for the user-defined time
+while (datetime.now() < END_TIME):
     time.sleep(1)   # delay for 1 second
 
     # Clear terminal
@@ -134,8 +138,6 @@ while i < TIME:
     packetsRecv = netStats2.packets_recv
     dropin = netStats2.dropin
     dropout = netStats2.dropout 
-
-    i = i + 1
 
 # Show DataFrames (summary of tabular data)
 print(inout_df)

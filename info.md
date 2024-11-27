@@ -1,5 +1,5 @@
 ## Running the program
-`sudo python network_monitor_1.py <time>`\
+`sudo python network_monitor_1.py <time in seconds>`\
 `sudo python network_monitor_2.py`\
 `sudo python network_monitor_3.py <threshold>` (or use default threshold of 0.5)
 
@@ -17,4 +17,9 @@ Used to generate artificial traffic
 - utun#: used by third-party networking applications
 
 ## Throttling with PF 
-- `pfctl.txt` stores the `/etc/pf.conf` file          
+Throttling is a rate limiting mechanism to gradually reduce bandwidth usage, using a queue that acts like a "leaky bucket" algorithm. 
+It does not immediately reduce usage below the specified threshold, but smooth out traffic over time.
+- `pfctl` is a command-line tool used to configure Packet Filter (PF) firewall on macOS 
+- `pfctl.txt` stores the `/etc/pf.conf` file            
+    - 
+ 
