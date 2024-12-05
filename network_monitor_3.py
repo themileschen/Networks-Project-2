@@ -71,13 +71,13 @@ def getSize(bytes):
         bytes /= 1024
 
 # To slow down processes that are hogging bandwidth
-def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):
+def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):    
     with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
             # Create new anchor for PID (to create PF rules)
             anchor_name = f"throttle_{pid}"
 
-            subprocess.run(f"sudo pfctl -f /etc/pf_copy2.conf", shell=True, check=True)
+            subprocess.run(f"sudo pfctl -f /etc/pf_custom.conf", shell=True, check=True)
 
             # Rule configuration passed to pfctl, which interacts with the PF 
             
@@ -94,18 +94,14 @@ def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):
             #                     pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}""".encode(),
             #                     shell=True, check=True)
             
-            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_copy2.conf",
-                           input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
+            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
+                           input=f""" table <throttled_{pid}> persist 
+                                queue throttle_{pid} bandwidth {rate} 
                                   block in quick from <pid_table>
                                   block out quick from <pid_table>""".encode(),
                                   shell=True, check=True)
 
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                       block in quick from <pid_table>
-            #                       block out quick from <pid_table>""".encode(),
-            #                       shell=True, check=True)
-    
+ 
     
             
                 # /etc/pf_custom.conf: the custom configuration file for PF 
@@ -137,7 +133,7 @@ def remove_throttle(pid, bandwidth):
             # Remove the anchor for the PID
             subprocess.run(f"sudo pfctl -a {anchor_name} -F all",
                            shell=True, check=True)
-            
+                        
             # Remove from throttled set 
             throttled_pids.remove(pid)
 
