@@ -1,4 +1,7 @@
 '''
+network_monitor_3.py as of pre-break (I thought this should have worked with the throttling....)
+    [UPDATE: it does if the custom.conf is loaded]
+
 Basic network monitor using psutil and scapy with sending/receiving stats by process, including hogging flag
 
 network_monitor_2.py
@@ -71,44 +74,19 @@ def getSize(bytes):
         bytes /= 1024
 
 # To slow down processes that are hogging bandwidth
-def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):
+def throttle_bandwidth(pid, bandwidth, rate='200Kbit/s'):
     with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
             # Create new anchor for PID (to create PF rules)
             anchor_name = f"throttle_{pid}"
 
-            subprocess.run(f"sudo pfctl -f /etc/pf_copy2.conf", shell=True, check=True)
-
             # Rule configuration passed to pfctl, which interacts with the PF 
-            
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_copy.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                     pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
-            #                     pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}
-            #                     pass out quick modulate state""".encode(),
-            #                     shell=True, check=True)
-            
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                     pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
-            #                     pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}""".encode(),
-            #                     shell=True, check=True)
-            
-            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_copy2.conf",
+            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf.conf",
                            input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-                                  block in quick from <pid_table>
-                                  block out quick from <pid_table>""".encode(),
-                                  shell=True, check=True)
-
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                       block in quick from <pid_table>
-            #                       block out quick from <pid_table>""".encode(),
-            #                       shell=True, check=True)
-    
-    
-            
-                # /etc/pf_custom.conf: the custom configuration file for PF 
+                                pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
+                                pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}""".encode(),
+                                shell=True, check=True)
+                # /etc/pf.conf: the configuration file for PF 
                 # <throttled_{pid}> table holds the throttled PIDs 
                 # queue throttle_{pid} to apply bandwidth limits 
                 # pass out (outgoing) and pass in (incoming) traffic 
@@ -261,22 +239,13 @@ def printStats():
         time.sleep(1)
         print_pid_to_traffic()
 
-# Restore default PF configuration file on computer
-def restore_defaults():
-    try:
-        subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)
-        print("Default PF rules restored.")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to restore defaults: {e}")
-
 # Main
 if __name__ == '__main__':
-    printing_thread = Thread(target=printStats, daemon=True)
-        # daemon: thread terminates automatically when main program exits
+    printing_thread = Thread(target=printStats)
     printing_thread.start()
 
     # Update the connections
-    connections_thread = Thread(target=get_connections, daemon=True)
+    connections_thread = Thread(target=get_connections)
     connections_thread.start()
 
     # Start sniffing
@@ -286,7 +255,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         program_running = False     # Whenever we exit sniff() function 
         printing_thread.join()
-        connections_thread.join()   
-    finally:
-        # Restore default PF rules on computer upon termination of program
-        restore_defaults()
+        connections_thread.join()

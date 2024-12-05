@@ -1,7 +1,7 @@
-UW PICO 5.09                       File: /etc/pf.conf                         
+UW PICO 5.09                       File: /etc/pf_custom.conf                         
 
-# Custom rules
-table <pid_table> persist
+# Custom rule
+table <pid_table> persist   # Defines a persistent table to store PIDs 
 
 # Default PF configuration file.
 # 
@@ -31,5 +31,5 @@ anchor "com.apple/*"
 load anchor "com.apple" from "/etc/pf.anchors/com.apple"
 
 # Custom filtering rules
-block in quick from <pid_table>
-pass out quick modulate state
+block in from <pid_table>   # throttle incoming traffic from certain sources
+pass out quick modulate state   # track outgoing connections and process traffic 

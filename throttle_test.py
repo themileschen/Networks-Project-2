@@ -71,52 +71,39 @@ def getSize(bytes):
         bytes /= 1024
 
 # To slow down processes that are hogging bandwidth
+counter = 0
 def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):
+    global counter 
     with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
-            # Create new anchor for PID (to create PF rules)
+            
+            custom_conf_path = '/etc/pf_copy2.conf'
+    
+            # Define the rules as a string
+            rules = f"""
+            table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate}
+            block in quick from <pid_table>
+            block out quick from <pid_table>
+            """
+    
+            
+            # Write the rules into the custom configuration file
+            if(counter == 0):
+                with open(custom_conf_path, 'a') as conf_file:
+                    conf_file.write(rules)
+
+            counter += 1
+    
+            # Apply the custom rules using pfctl
             anchor_name = f"throttle_{pid}"
-
-            subprocess.run(f"sudo pfctl -f /etc/pf_copy2.conf", shell=True, check=True)
-
-            # Rule configuration passed to pfctl, which interacts with the PF 
+            subprocess.run(f"sudo pfctl -a {anchor_name} -f {custom_conf_path}",
+                        shell=True, check=True)
             
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_copy.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                     pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
-            #                     pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}
-            #                     pass out quick modulate state""".encode(),
-            #                     shell=True, check=True)
-            
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                     pass out quick proto tcp from any to <throttled_{pid}> queue throttle_{pid}
-            #                     pass in quick proto tcp from <throttled_{pid}> to any queue throttle_{pid}""".encode(),
-            #                     shell=True, check=True)
-            
-            subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_copy2.conf",
-                           input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-                                  block in quick from <pid_table>
-                                  block out quick from <pid_table>""".encode(),
-                                  shell=True, check=True)
-
-            # subprocess.run(f"sudo pfctl -a {anchor_name} -f /etc/pf_custom.conf",
-            #                input=f""" table <throttled_{pid}> persist queue throttle_{pid} bandwidth {rate} 
-            #                       block in quick from <pid_table>
-            #                       block out quick from <pid_table>""".encode(),
-            #                       shell=True, check=True)
-    
-    
-            
-                # /etc/pf_custom.conf: the custom configuration file for PF 
-                # <throttled_{pid}> table holds the throttled PIDs 
-                # queue throttle_{pid} to apply bandwidth limits 
-                # pass out (outgoing) and pass in (incoming) traffic 
-                # persist: ensures table and its contents persist after PF reload 
-            
-            # Add process to the throttled table
+            # Add the process to the throttled table
             subprocess.run(f"sudo pfctl -a {anchor_name} -t throttled_{pid} -T add {pid}",
-                           shell=True, check=True)
+                        shell=True, check=True)
+    
+            
             
             time_update = datetime.now() - START_TIME
             msg = f"Throttled PID {pid} to {rate}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
