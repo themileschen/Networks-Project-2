@@ -1,7 +1,8 @@
-## Running the program
+## Running the programs
 `sudo python network_monitor_1.py <time in seconds>`\
 `sudo python network_monitor_2.py`\
-`sudo python network_monitor_3.py <threshold>` (or use default threshold of 0.5)
+`sudo python network_monitor_3.py <threshold>` (or use default threshold of 0.5)\
+`sudo python ip_blocking.py`
 
 ## Using iperf3 
 Used to generate artificial traffic 
@@ -16,10 +17,24 @@ Used to generate artificial traffic
 - awdl0: Apple Wireless Direct Link 
 - utun#: used by third-party networking applications
 
-## Throttling with PF 
-Throttling is a rate limiting mechanism to gradually reduce bandwidth usage, using a queue that acts like a "leaky bucket" algorithm. 
-It does not immediately reduce usage below the specified threshold, but smooth out traffic over time.
+## Blocking with PF 
 - `pfctl` is a command-line tool used to configure Packet Filter (PF) firewall on macOS 
-- `pfctl.txt` stores the contents of the `/etc/pf_custom.conf` file \
-To see the effects of throttling vs. without, run `network_monitor_1.py` and `network_monitor_3.py` simultaneously
-- **Before running**, ensure PF is enabled (`sudo pfctl -e`) and that the rules are loaded (`sudo pfctl -f /etc/pf_custom.conf`)
+- `ip_blocking_conf.txt` stores the contents of the `/etc/pf_ip.conf` file 
+- Results are displayed in `blocking_log.txt`
+- **Before running**, ensure PF is enabled (`sudo pfctl -e`) 
+
+## Throttling with PF (WORK IN PROGRESS)
+- `ip_throttle_conf.txt`
+- `ip_throttle.py`
+- `throttling_log.txt`
+
+## Convergence algorithm (WORK IN PROGRESS)
+- `convergence.py`
+- Sample data input: `sample_flows.xlsx`
+
+## Files to ignore
+- `test.py`
+- `get_ip.py`
+- `comments.txt`
+- `throttle_v1.py`
+- `throttle_v2.py`

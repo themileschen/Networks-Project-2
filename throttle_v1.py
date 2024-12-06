@@ -1,5 +1,6 @@
-# Initial throttling code (archive)
-
+'''
+Initial throttling code (archive)
+'''
 
 # To slow-down processes that are hogging bandwidth
 def throttle_bandwidth(pid, rate='200Kbit/s'):

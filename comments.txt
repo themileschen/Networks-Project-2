@@ -1,0 +1,7 @@
+## Throttling with PF 
+Throttling is a rate limiting mechanism to gradually reduce bandwidth usage, using a queue that acts like a "leaky bucket" algorithm. 
+It does not immediately reduce usage below the specified threshold, but smooth out traffic over time.
+- `pfctl` is a command-line tool used to configure Packet Filter (PF) firewall on macOS 
+- `pfctl.txt` stores the contents of the `/etc/pf_custom.conf` file \
+To see the effects of throttling vs. without, run `network_monitor_1.py` and `network_monitor_3.py` simultaneously
+- **Before running**, ensure PF is enabled (`sudo pfctl -e`) and that the rules are loaded (`sudo pfctl -f /etc/pf_custom.conf`)

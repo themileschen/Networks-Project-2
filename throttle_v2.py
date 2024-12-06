@@ -1,9 +1,17 @@
 '''
+Initial failed throttling code (will "throttle" the process but in fact blocks indefinitely)
+'''
+
+'''
 Basic network monitor using psutil and scapy with sending/receiving stats by process, including hogging flag
 
 network_monitor_2.py
 https://thepythoncode.com/article/make-a-network-usage-monitor-in-python
 
+
+Extension with throttling: use pfctl to manage the Packet Filter (PF) firewall on macOS to slow down hogging processes
+
+Throttling: used significant assistance from ChatGPT and Perplexity AI 
 '''
 
 from scapy.all import *
@@ -15,6 +23,7 @@ from collections import defaultdict    # provides default values for missing key
 from threading import Thread 
 from datetime import datetime 
 import sys  # command line args 
+import subprocess   # for throttling
 
 # Get the threshold from user (or use default)
 if len(sys.argv) != 2:
@@ -42,6 +51,19 @@ traffic_df = None
 # Status of program
 program_running = True 
 
+# PIDs currently being throttled 
+throttled_pids = set()
+
+# Log file to track of throttling information
+LOG_FILE = 'throttling_log.txt'
+
+# Clear the output file of any existing contents from previous runs (using write mode)
+with open(LOG_FILE, 'w') as log_file:
+    pass
+
+# Get program start time
+START_TIME = datetime.now()
+
 # Units of memory sizes
 size = ['bytes', 'KB', 'MB', 'GB', 'TB']
 
@@ -51,6 +73,47 @@ def getSize(bytes):
         if bytes < 1024:
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
+
+# To slow down processes that are hogging bandwidth
+def throttle_bandwidth(pid, bandwidth, rate='50Kbit/s'):
+    with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
+        try:
+            subprocess.run(f"sudo pfctl -f /etc/pf_custom.conf", shell=True, check=True)
+
+            # Rule configuration passed to pfctl, which interacts with the PF 
+            
+            
+            subprocess.run(f"sudo pfctl -t pid_table -T add {pid}", shell=True, check=True)
+
+            subprocess.run(f"sudo pfctl -a throttle -f /etc/pf_custom.conf", shell=True, check=True)
+            
+            time_update = datetime.now() - START_TIME
+            msg = f"Throttled PID {pid} to {rate}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
+            log_file.write(msg)
+
+            throttled_pids.add(pid)     # add to set of currently throttled processes
+        except Exception as e:
+            error_msg = f"Failed to throttle PID {pid}: {e}\n"
+            log_file.write(error_msg)
+
+# Remove throttling for processes that are no longer hogging
+def remove_throttle(pid, bandwidth):
+    with open(LOG_FILE, 'a') as log_file:
+        try:
+            
+            subprocess.run(f"sudo pfctl -t pid_table -T delete {pid}", shell=True, check=True)
+
+            subprocess.run(f"sudo pfctl -a throttle -F all -F state", shell=True, check=True)
+            
+            # Remove from throttled set 
+            throttled_pids.remove(pid)
+
+            time_update = datetime.now() - START_TIME
+            msg = f"Removed throttle for PID {pid}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
+            log_file.write(msg)
+        except Exception as e:
+            error_msg = f"Failed to remove throttle for PID {pid}: {e}\n"
+            log_file.write(error_msg)
 
 # Update upload and download traffic 
     # Get packet ports 
@@ -140,6 +203,10 @@ def print_pid_to_traffic():
         the_bandwidth = float(row['bandwidth'])
         if (the_bandwidth / total_bandwidth > BANDWIDTH):
             df.loc[curr_pid, 'Bandwidth Hog'] = True
+            if ((the_bandwidth > (200 * 1024)) & (curr_pid not in throttled_pids)):  # Only throttle if it is a) hogging, and b) exceeds 200 KB/s, and c) the process is not already being throttled
+                throttle_bandwidth(curr_pid, the_bandwidth)
+        elif (curr_pid in throttled_pids):   # Currently throttled, but no longer hogging
+            remove_throttle(curr_pid, the_bandwidth)
 
     # Print 
     printing_df = df.copy()     # Copy for fancy printing
@@ -160,6 +227,13 @@ def printStats():
         time.sleep(1)
         print_pid_to_traffic()
 
+# Restore default PF configuration file on computer
+def restore_defaults():
+    try:
+        subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)
+        print("Default PF rules restored.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to restore defaults: {e}")
 
 # Main
 if __name__ == '__main__':
@@ -179,3 +253,6 @@ if __name__ == '__main__':
         program_running = False     # Whenever we exit sniff() function 
         printing_thread.join()
         connections_thread.join()   
+    finally:
+        # Restore default PF rules on computer upon termination of program
+        restore_defaults()
