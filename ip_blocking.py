@@ -21,14 +21,8 @@ from datetime import datetime
 import sys  # command line args 
 import subprocess   # for throttling
 
-# Get the threshold from user (or use default)
-if len(sys.argv) != 2:
-    BANDWIDTH = 0.5 # Default: if one process is using more than 50% of the total used bandwidth, it is "hogging"
-elif (float(sys.argv[1]) < 0) | (float(sys.argv[1]) > 1):
-    print("Threshold must be a proportion between 0 and 1")
-    exit(1)
-else:
-    BANDWIDTH = float(sys.argv[1])
+BANDWIDTH = 0.5     # If one process is using more than 50% of the total used bandwidth, it is "hogging"
+BLOCK_THRESHOLD = 200 * 1024    # 200 KB/s 
 
 # Get the MAC addresses of all network interfaces on the machine
 ifaces = conf.ifaces
@@ -84,6 +78,9 @@ def block_bandwidth(ip, pid, bandwidth):
         try:
             # Loads PF firewall rules
             subprocess.run(f"sudo pfctl -f /etc/pf_ip.conf", shell=True, check=True)
+                # Subprocess: to run an external command
+                # shell=True: command run through the shell
+                # check=True: ensures exception is raised if applicable 
 
             # Add IP address to the blocking table 
             subprocess.run(f"sudo pfctl -t ip_table -T add {ip}", shell=True, check=True)
@@ -117,10 +114,10 @@ def remove_block(ip, pid, bandwidth):
             log_file.write(msg)
 
             try:
-                subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)  # Reload PF rules
+                subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)  # Reload default PF rules (no blocking)
             except:
                 print("Failed to re-fresh rules after successful IP removal")
-
+            
         except Exception as e:
             error_msg = f"Failed to remove blocking for IP {ip}: {e}\n"
             log_file.write(error_msg)
@@ -213,7 +210,7 @@ def print_pid_to_traffic():
         the_bandwidth = float(row['bandwidth'])
         if (the_bandwidth / total_bandwidth > BANDWIDTH):
             df.loc[curr_pid, 'Bandwidth Hog'] = True
-            if ((the_bandwidth > (200 * 1024)) & (curr_pid not in blocked_pids)):  # Only block if it is a) hogging, and b) exceeds 200 KB/s, and c) the process is not already being blocked
+            if ((the_bandwidth > (BLOCK_THRESHOLD)) & (curr_pid not in blocked_pids)):  # Only block if it is a) hogging, and b) exceeds the block threshold, and c) the process is not already being blocked
                 ips = get_ip(curr_pid)  # Get associated IP addresses 
                 ips_to_add = set()
                 if ips:

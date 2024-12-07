@@ -1,2 +1,27 @@
-Throttled PID 60574 to 50Kbit/s; Time = 0:00:11.409254; Current rate = 782.0KB
-Removed throttle for PID 60574; Time = 0:00:22.697443; Current rate = 1.6KB
+Failed to throttle IP 52.96.57.18: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.108.248.0: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 54.80.4.237: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 142.250.115.113: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.108.208.65: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.182.141.63: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 13.249.74.5: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.108.248.18: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 142.250.115.95: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 40.126.29.10: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.109.16.92: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 104.18.26.48: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 142.251.186.94: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 142.250.115.94: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.96.121.114: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 104.208.16.90: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 13.107.136.10: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP ::1: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 172.64.145.19: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 184.169.198.27: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.108.248.2: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 34.205.126.51: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.109.8.37: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.108.8.12: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 52.96.191.98: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 192.178.128.190: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.
+Failed to throttle IP 142.250.113.95: Command 'sudo pfctl -f /etc/pf_throttle.conf' returned non-zero exit status 1.

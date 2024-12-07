@@ -5,9 +5,11 @@ network_monitor_2.py
 https://thepythoncode.com/article/make-a-network-usage-monitor-in-python
 
 
-Extension with throttling: use pfctl to manage the Packet Filter (PF) firewall on macOS to slow down hogging processes
+Extension with traffic blocking: use pfctl to manage the Packet Filter (PF) firewall on macOS to temporarily block hogging processes
 
-Throttling: used significant assistance from ChatGPT and Perplexity AI 
+Blocking: used significant assistance from ChatGPT and Perplexity AI 
+
+TO FIX: Does not unblock properly - even though table entries are deleted and states seem to be removed 
 '''
 
 from scapy.all import *
@@ -21,8 +23,14 @@ from datetime import datetime
 import sys  # command line args 
 import subprocess   # for throttling
 
-BANDWIDTH = 0.5     # If one process is using more than 50% of the total used bandwidth, it is "hogging"
-THROTTLE_THRESHOLD = 200 * 1024    # 200 KB/s 
+# Get the threshold from user (or use default)
+if len(sys.argv) != 2:
+    BANDWIDTH = 0.5 # Default: if one process is using more than 50% of the total used bandwidth, it is "hogging"
+elif (float(sys.argv[1]) < 0) | (float(sys.argv[1]) > 1):
+    print("Threshold must be a proportion between 0 and 1")
+    exit(1)
+else:
+    BANDWIDTH = float(sys.argv[1])
 
 # Get the MAC addresses of all network interfaces on the machine
 ifaces = conf.ifaces
@@ -41,14 +49,14 @@ traffic_df = None
 # Status of program
 program_running = True 
 
-# PIDs currently being throttled 
-throttled_pids = set()
+# PIDs currently being blocked 
+blocked_pids = set()
 
 # Dictionary that maps PIDs to corresponding IP addresses 
 pid_ips = {}
 
-# Log file to track of throttling information
-LOG_FILE = 'throttling_log.txt'
+# Log file to track of blocking information
+LOG_FILE = 'blocking_log.txt'
 
 # Clear the output file of any existing contents from previous runs (using write mode)
 with open(LOG_FILE, 'w') as log_file:
@@ -67,48 +75,72 @@ def getSize(bytes):
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
 
-# To slow down processes that are hogging bandwidth
-def throttle_bandwidth(ip, pid, bandwidth, rate='50Kbit/s'):
+# To block processes that are hogging bandwidth
+def block_bandwidth(ip, pid, bandwidth):
+
+    # Print out current table for debugging 
+    # result = subprocess.run("sudo pfctl -t ip_table -T show", shell=True, check=True, capture_output=True)
+    # print(result.stdout.decode())
+
+    # EXPLAIN HOW SUBPROCESS WORKS 
+    
     with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
-            # Loads PF firewall rules 
-            subprocess.run(f"sudo pfctl -f /etc/pf_throttle.conf", shell=True, check=True)
+            # Loads PF firewall rules
+            subprocess.run(f"sudo pfctl -f /etc/pf_ip.conf", shell=True, check=True)
 
-            # Add IP address to the throttling table 
+            # Add IP address to the blocking table 
             subprocess.run(f"sudo pfctl -t ip_table -T add {ip}", shell=True, check=True)
             
             time_update = datetime.now() - START_TIME
-            msg = f"Throttled IP {ip} to {rate}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
+            msg = f"Blocked IP {ip}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
 
-            throttled_pids.add(pid)     # add to set of currently throttled processes
+            blocked_pids.add(pid)     # add to set of currently blocked processes
         except Exception as e:
-            error_msg = f"Failed to throttle IP {ip}: {e}\n"
+            error_msg = f"Failed to block IP {ip}: {e}\n"
             log_file.write(error_msg)
 
-# Remove throttling for processes that are no longer hogging
-def remove_throttle(ip, pid, bandwidth):
+# Remove blocking for processes that are no longer hogging
+def remove_block(ip, pid, bandwidth):
+
+    # Print out current table for debugging 
+    # result = subprocess.run("sudo pfctl -t ip_table -T show", shell=True, check=True, capture_output=True)
+    # print(result.stdout.decode())
+    
     with open(LOG_FILE, 'a') as log_file:
         try:
-            # Delete IP address from the throttling table 
+            # Delete IP address from the blocking table 
             subprocess.run(f"sudo pfctl -t ip_table -T delete {ip}", shell=True, check=True)
             
-            # Remove from throttled set (if it still exists in the set)
-            throttled_pids.discard(pid)
+            # Remove process from the blocked set (if still exists in the set)
+            blocked_pids.discard(pid)
 
             time_update = datetime.now() - START_TIME
-            msg = f"Removed throttle for IP {ip}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
+            msg = f"Removed block for IP {ip}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
 
             try:
-                subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)  # Reload PF rules
+                # subprocess.run(f"sudo pfctl -k {ip} -k 0.0.0.0/0", shell=True, check=True)
+                # subprocess.run("sudo pfctl -F state", shell=True, check=True)
+                subprocess.run(f"sudo pfctl -k {ip} -k 0.0.0.0/0", shell=True, check=True)
+                subprocess.run(f"sudo pfctl -k 0.0.0.0/0 -k {ip}", shell=True, check=True)
+                # subprocess.run(f"sudo pfctl -k {ip}", shell=True, check=True)
+
+            except subprocess.CalledProcessError as e:
+                print("Failed to kill existing connections")
+                print(f"Command failed: {e.cmd}")
+                print(f"Error output: {e.stderr.decode()}")    
+
+            try:
+                subprocess.run("sudo pfctl -f /etc/pf_ip.conf", shell=True, check=True)  # Reload PF rules
             except:
                 print("Failed to re-fresh rules after successful IP removal")
-
+            
         except Exception as e:
-            error_msg = f"Failed to remove throttle for IP {ip}: {e}\n"
+            error_msg = f"Failed to remove blocking for IP {ip}: {e}\n"
             log_file.write(error_msg)
-
+       
 # Update upload and download traffic 
     # Get packet ports 
     # Get corresponding PID 
@@ -191,23 +223,23 @@ def print_pid_to_traffic():
     except KeyError as e:
         pass    # DataFrame empty
 
-    # Update bandwidth hogs and throttle necessary processes
+    # Update bandwidth hogs and block necessary processes 
     for _, row in process_bandwidth.iterrows():
         curr_pid = row['pid']
         the_bandwidth = float(row['bandwidth'])
         if (the_bandwidth / total_bandwidth > BANDWIDTH):
             df.loc[curr_pid, 'Bandwidth Hog'] = True
-            if ((the_bandwidth > (THROTTLE_THRESHOLD)) & (curr_pid not in throttled_pids)):  # Only throttle if it is a) hogging, and b) exceeds 200 KB/s, and c) the process is not already being throttled
-                ips = get_ip(curr_pid)  # Get associated IP addresses
+            if ((the_bandwidth > (200 * 1024)) & (curr_pid not in blocked_pids)):  # Only block if it is a) hogging, and b) exceeds 200 KB/s, and c) the process is not already being blocked
+                ips = get_ip(curr_pid)  # Get associated IP addresses 
                 ips_to_add = set()
                 if ips:
                     for ip in ips:
-                        ips_to_add.add(ip)  # Add to list of IPs to throttle    
-                        throttle_bandwidth(ip, curr_pid, the_bandwidth) # Throttle it
-                    add_ips(curr_pid, ips_to_add)   # Store newly blocked IPs with the associated PID for future reference
-        elif (curr_pid in throttled_pids):   # Currently throttled, but no longer hogging
-            iterate_ips(curr_pid, the_bandwidth)    # Release the IPs currently throttled for this process
-            remove_pid(curr_pid)    # Remove the PID from the set of throttled PIDs
+                        ips_to_add.add(ip)  # Add to list of IPs to block 
+                        block_bandwidth(ip, curr_pid, the_bandwidth)    # Block it 
+                    add_ips(curr_pid, ips_to_add)   # Store newly blocked IPs with the associated PID for future reference when unblocking
+        elif (curr_pid in blocked_pids):   # Currently blocked, but no longer hogging
+            iterate_ips(curr_pid, the_bandwidth)    # Release the IPs currently blocked for this process
+            remove_pid(curr_pid)    # Remove the PID from the set of blocked PIDs 
 
     # Print 
     printing_df = df.copy()     # Copy for fancy printing
@@ -218,8 +250,8 @@ def print_pid_to_traffic():
         printing_df['Upload Speed'] = printing_df['Upload Speed'].apply(getSize).apply(lambda s: f"{s}/s") 
     except KeyError as e:
         pass    # DataFrame is empty 
-    os.system('clear')
-    print(printing_df.to_string())
+    # os.system('clear')
+    # print(printing_df.to_string())
     traffic_df = df     # Update global df
 # Keep printing stats
 def printStats():
@@ -227,7 +259,7 @@ def printStats():
         time.sleep(1)
         print_pid_to_traffic()
 
-# Restore default PF configuration file on computer
+# Restore default PF configuration file on computer (/etc/pf.conf)
 def restore_defaults():
     try:
         subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)
@@ -262,7 +294,7 @@ def get_ip(pid):
     except Exception as e:
         return str(e)
 
-# Clear the IP table from any previous runs/throttling
+# Clear the IP table from any previous runs/blocking
 def clear_ip_table(table_name='ip_table'):
     try:
         subprocess.run(f"sudo pfctl -t {table_name} -T flush", shell=True, check=True)
@@ -277,23 +309,23 @@ def add_ips(pid, ips):
     else:
         pid_ips[pid] = ips
 
-# Remove PID (and associated IPs) from the throttled list 
+# Remove PID (and associated IPs) from the blocked list 
 def remove_pid(pid):
     if pid in pid_ips:
         del pid_ips[pid]
 
-# Remove throttling for IPs in specified PID 
+# Remove blocking for IPs in specified PID 
 def iterate_ips(pid, the_bandwidth):
     if pid in pid_ips:
         for ip in pid_ips[pid]:
-            remove_throttle(ip, pid, the_bandwidth)
+            remove_block(ip, pid, the_bandwidth)
     else:
         print(f"No IPs found for PID {pid}")
 
 
 # Main
 if __name__ == '__main__':
-    clear_ip_table()    # Ensure no IPs are throttled to start
+    clear_ip_table()    # Ensure no IPs are blocked to start
 
     printing_thread = Thread(target=printStats, daemon=True)
         # daemon: thread terminates automatically when main program exits
