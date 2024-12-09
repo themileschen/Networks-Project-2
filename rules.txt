@@ -1,0 +1,2 @@
+dummynet out proto tcp from any to any port 6000 pipe 1
+dummynet out proto tcp from any port 6000 to any pipe 1

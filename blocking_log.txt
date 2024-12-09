@@ -1,44 +1,70 @@
-Blocked IP 52.96.57.18; Time = 0:00:25.685830; Current rate = 250.6KB
-Blocked IP 142.250.115.94; Time = 0:00:25.897043; Current rate = 250.6KB
-Blocked IP 52.111.239.65; Time = 0:00:26.245720; Current rate = 250.6KB
-Blocked IP 52.108.248.18; Time = 0:00:26.428273; Current rate = 250.6KB
-Blocked IP 142.250.115.113; Time = 0:00:26.517889; Current rate = 250.6KB
-Blocked IP 104.18.42.237; Time = 0:00:26.778588; Current rate = 250.6KB
-Blocked IP 52.108.8.12; Time = 0:00:27.679516; Current rate = 250.6KB
-Blocked IP 104.18.26.48; Time = 0:00:27.861490; Current rate = 250.6KB
-Blocked IP 142.250.115.95; Time = 0:00:27.942377; Current rate = 250.6KB
-Blocked IP 142.250.115.18; Time = 0:00:28.005106; Current rate = 250.6KB
-Blocked IP 52.108.248.2; Time = 0:00:28.081047; Current rate = 250.6KB
-Blocked IP 142.250.115.147; Time = 0:00:28.197723; Current rate = 250.6KB
-Blocked IP 142.250.113.94; Time = 0:00:28.257220; Current rate = 250.6KB
-Blocked IP 52.109.16.92; Time = 0:00:28.306190; Current rate = 250.6KB
-Blocked IP 142.250.113.95; Time = 0:00:28.358998; Current rate = 250.6KB
-Blocked IP 142.250.115.84; Time = 0:00:28.412904; Current rate = 250.6KB
-Blocked IP 52.108.208.65; Time = 0:00:28.461062; Current rate = 250.6KB
-Blocked IP 52.108.248.0; Time = 0:00:28.508252; Current rate = 250.6KB
-Blocked IP 142.250.115.132; Time = 0:00:28.561059; Current rate = 250.6KB
-Blocked IP 142.251.186.139; Time = 0:00:28.613441; Current rate = 250.6KB
-Blocked IP 142.251.186.132; Time = 0:00:28.664794; Current rate = 250.6KB
-Blocked IP 52.108.147.15; Time = 0:00:28.715439; Current rate = 250.6KB
-Removed block for IP 52.96.57.18; Time = 0:00:43.362972; Current rate = 1.6KB
-Removed block for IP 142.250.115.94; Time = 0:00:43.419815; Current rate = 1.6KB
-Removed block for IP 52.111.239.65; Time = 0:00:43.465303; Current rate = 1.6KB
-Removed block for IP 142.250.115.113; Time = 0:00:43.510283; Current rate = 1.6KB
-Removed block for IP 52.108.248.18; Time = 0:00:43.571350; Current rate = 1.6KB
-Removed block for IP 104.18.42.237; Time = 0:00:43.617554; Current rate = 1.6KB
-Removed block for IP 52.108.8.12; Time = 0:00:43.662984; Current rate = 1.6KB
-Removed block for IP 104.18.26.48; Time = 0:00:43.709482; Current rate = 1.6KB
-Removed block for IP 142.250.115.95; Time = 0:00:43.754270; Current rate = 1.6KB
-Removed block for IP 142.250.115.18; Time = 0:00:43.797574; Current rate = 1.6KB
-Removed block for IP 52.108.248.2; Time = 0:00:43.841145; Current rate = 1.6KB
-Removed block for IP 142.250.115.147; Time = 0:00:43.885567; Current rate = 1.6KB
-Removed block for IP 142.250.113.94; Time = 0:00:43.935062; Current rate = 1.6KB
-Removed block for IP 52.109.16.92; Time = 0:00:43.979584; Current rate = 1.6KB
-Removed block for IP 142.250.113.95; Time = 0:00:44.023592; Current rate = 1.6KB
-Removed block for IP 142.250.115.84; Time = 0:00:44.076923; Current rate = 1.6KB
-Removed block for IP 52.108.208.65; Time = 0:00:44.121384; Current rate = 1.6KB
-Removed block for IP 52.108.248.0; Time = 0:00:44.165061; Current rate = 1.6KB
-Removed block for IP 142.250.115.132; Time = 0:00:44.224740; Current rate = 1.6KB
-Removed block for IP 142.251.186.139; Time = 0:00:44.269598; Current rate = 1.6KB
-Removed block for IP 142.251.186.132; Time = 0:00:44.315855; Current rate = 1.6KB
-Removed block for IP 52.108.147.15; Time = 0:00:44.360974; Current rate = 1.6KB
+Blocked IP 52.96.57.2; Time = 0:00:06.219042; Current rate = 516.5KB
+Blocked IP 52.216.48.97; Time = 0:00:06.312731; Current rate = 516.5KB
+Blocked IP 104.18.26.48; Time = 0:00:06.394566; Current rate = 516.5KB
+Blocked IP 3.33.235.18; Time = 0:00:06.446414; Current rate = 516.5KB
+Blocked IP 13.107.138.10; Time = 0:00:06.501853; Current rate = 516.5KB
+Blocked IP 52.108.208.65; Time = 0:00:06.566771; Current rate = 516.5KB
+Blocked IP 18.154.253.7; Time = 0:00:06.619015; Current rate = 516.5KB
+Blocked IP 142.250.113.101; Time = 0:00:06.674435; Current rate = 516.5KB
+Blocked IP 173.194.70.94; Time = 0:00:06.757829; Current rate = 516.5KB
+Blocked IP 142.250.115.105; Time = 0:00:06.843488; Current rate = 516.5KB
+Blocked IP 13.57.100.72; Time = 0:00:06.937078; Current rate = 516.5KB
+Blocked IP 192.178.128.95; Time = 0:00:06.990698; Current rate = 516.5KB
+Blocked IP 142.250.113.94; Time = 0:00:07.045893; Current rate = 516.5KB
+Blocked IP 172.67.157.30; Time = 0:00:07.092756; Current rate = 516.5KB
+Blocked IP 40.126.7.32; Time = 0:00:07.141827; Current rate = 516.5KB
+Blocked IP 108.138.159.15; Time = 0:00:07.190246; Current rate = 516.5KB
+Blocked IP 52.111.227.68; Time = 0:00:07.244460; Current rate = 516.5KB
+Blocked IP ::1; Time = 0:00:07.300958; Current rate = 516.5KB
+Blocked IP 52.109.8.37; Time = 0:00:07.351903; Current rate = 516.5KB
+Blocked IP 35.190.80.1; Time = 0:00:07.402777; Current rate = 516.5KB
+Blocked IP 13.249.79.16; Time = 0:00:07.454028; Current rate = 516.5KB
+Blocked IP 184.31.0.163; Time = 0:00:07.524340; Current rate = 516.5KB
+Blocked IP 108.177.104.94; Time = 0:00:07.583897; Current rate = 516.5KB
+Blocked IP 13.249.74.5; Time = 0:00:07.634485; Current rate = 516.5KB
+Blocked IP 52.111.227.3; Time = 0:00:07.682659; Current rate = 516.5KB
+Blocked IP 108.177.9.95; Time = 0:00:07.737681; Current rate = 516.5KB
+Blocked IP 142.250.113.95; Time = 0:00:07.787998; Current rate = 516.5KB
+Blocked IP 20.189.173.11; Time = 0:00:07.856530; Current rate = 516.5KB
+Blocked IP 52.96.57.66; Time = 0:00:07.905771; Current rate = 516.5KB
+Blocked IP 142.250.115.84; Time = 0:00:07.952510; Current rate = 516.5KB
+Blocked IP 52.108.248.0; Time = 0:00:07.999494; Current rate = 516.5KB
+Blocked IP 20.189.173.16; Time = 0:00:08.049100; Current rate = 516.5KB
+Blocked IP 52.108.248.2; Time = 0:00:08.094918; Current rate = 516.5KB
+Blocked IP 52.207.160.226; Time = 0:00:08.145346; Current rate = 516.5KB
+Blocked IP 142.250.115.95; Time = 0:00:08.199291; Current rate = 516.5KB
+Removed block for IP 52.96.57.2; Time = 0:00:32.839095; Current rate = 1.1KB
+Removed block for IP 52.216.48.97; Time = 0:00:32.894249; Current rate = 1.1KB
+Removed block for IP 104.18.26.48; Time = 0:00:32.958976; Current rate = 1.1KB
+Removed block for IP 3.33.235.18; Time = 0:00:33.017518; Current rate = 1.1KB
+Removed block for IP 13.107.138.10; Time = 0:00:33.063973; Current rate = 1.1KB
+Removed block for IP 52.108.208.65; Time = 0:00:33.122983; Current rate = 1.1KB
+Removed block for IP 18.154.253.7; Time = 0:00:33.173575; Current rate = 1.1KB
+Removed block for IP 142.250.113.101; Time = 0:00:33.219375; Current rate = 1.1KB
+Removed block for IP 173.194.70.94; Time = 0:00:33.263988; Current rate = 1.1KB
+Removed block for IP 142.250.115.105; Time = 0:00:33.308947; Current rate = 1.1KB
+Removed block for IP 13.57.100.72; Time = 0:00:33.353110; Current rate = 1.1KB
+Removed block for IP 192.178.128.95; Time = 0:00:33.403281; Current rate = 1.1KB
+Removed block for IP 40.126.7.32; Time = 0:00:33.448926; Current rate = 1.1KB
+Removed block for IP 172.67.157.30; Time = 0:00:33.499082; Current rate = 1.1KB
+Removed block for IP 108.138.159.15; Time = 0:00:33.545632; Current rate = 1.1KB
+Removed block for IP 142.250.113.94; Time = 0:00:33.592981; Current rate = 1.1KB
+Removed block for IP 52.111.227.68; Time = 0:00:33.641901; Current rate = 1.1KB
+Removed block for IP ::1; Time = 0:00:33.685416; Current rate = 1.1KB
+Removed block for IP 52.109.8.37; Time = 0:00:33.733854; Current rate = 1.1KB
+Removed block for IP 35.190.80.1; Time = 0:00:33.780625; Current rate = 1.1KB
+Removed block for IP 13.249.79.16; Time = 0:00:33.825856; Current rate = 1.1KB
+Removed block for IP 184.31.0.163; Time = 0:00:33.876048; Current rate = 1.1KB
+Removed block for IP 108.177.104.94; Time = 0:00:33.925507; Current rate = 1.1KB
+Removed block for IP 13.249.74.5; Time = 0:00:33.973179; Current rate = 1.1KB
+Removed block for IP 52.111.227.3; Time = 0:00:34.022152; Current rate = 1.1KB
+Removed block for IP 108.177.9.95; Time = 0:00:34.069422; Current rate = 1.1KB
+Removed block for IP 142.250.113.95; Time = 0:00:34.113795; Current rate = 1.1KB
+Removed block for IP 20.189.173.11; Time = 0:00:34.157670; Current rate = 1.1KB
+Removed block for IP 52.96.57.66; Time = 0:00:34.200041; Current rate = 1.1KB
+Removed block for IP 142.250.115.84; Time = 0:00:34.246716; Current rate = 1.1KB
+Removed block for IP 52.108.248.0; Time = 0:00:34.290350; Current rate = 1.1KB
+Removed block for IP 20.189.173.16; Time = 0:00:34.335382; Current rate = 1.1KB
+Removed block for IP 52.108.248.2; Time = 0:00:34.382147; Current rate = 1.1KB
+Removed block for IP 52.207.160.226; Time = 0:00:34.435167; Current rate = 1.1KB
+Removed block for IP 142.250.115.95; Time = 0:00:34.480858; Current rate = 1.1KB

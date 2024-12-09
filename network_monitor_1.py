@@ -9,7 +9,6 @@ import os   # functions for interacting with the OS
 import time
 import psutil   # to access system details and process utilities
 from prettytable import PrettyTable
-from prettytable import DOUBLE_BORDER
 import pandas as pd 
 import matplotlib.pyplot as plt
 import sys  # command line args 
@@ -44,36 +43,34 @@ def getSize(bytes):
 def printData():
     # Create instance of PrettyTable class
     card = PrettyTable()
-    card.set_style(DOUBLE_BORDER)
     # Column names of the table
     card.field_names = ['Total Received', 'Receiving', 'In Packet Dropping', 
                         'Total Sent', 'Sending', 'Out Packet Dropping']
     # Add row to the table 
-    card.add_row([f"{getSize(netStats2.bytes_recv)}", 
+    card.add_row([f"{getSize(netStats2.bytes_recv - RECV_START)}", 
         f"{getSize(downloadStat)}/s", 
         f"{recPackLost:.2f}%", 
-        f"{getSize(netStats2.bytes_sent)}", 
+        f"{getSize(netStats2.bytes_sent - SENT_START)}", 
         f"{getSize(uploadStat)}/s",
         f"{outPackLost:.2f}%"])
     print(card)
     # Add info to end of DataFrame
     inout_df.loc[len(inout_df)] = [
-        netStats2.bytes_recv,
+        netStats2.bytes_recv - RECV_START,
         downloadStat,
         f"{recPackLost:.2f}",
-        netStats2.bytes_sent,
+        netStats2.bytes_sent - SENT_START,
         uploadStat,
         f"{outPackLost:.2f}"
     ]
 
-# Prints socekt data on the terminal
+# Prints socket data on the terminal
 def printSocketData():
     totalSocketInfo = psutil.net_connections()
     inetSocketInfo = psutil.net_connections(kind='inet')
     TCPsocketInfo = psutil.net_connections(kind='tcp')
     UDPsocketInfo = psutil.net_connections(kind='udp')
     card2 = PrettyTable()
-    card2.set_style(DOUBLE_BORDER)
     card2.field_names = ['Total Socket Connections', 'inet', 'TCP', 'UDP']
     card2.add_row([f"{len(totalSocketInfo)}",
         f"{len(inetSocketInfo)}",
@@ -100,6 +97,10 @@ packetsSent = netStats1.packets_sent
 packetsRecv = netStats1.packets_recv
 dropin = netStats1.dropin
 dropout = netStats1.dropout 
+
+# Total data sent and received (measured at start of program) 
+SENT_START = dataSent
+RECV_START = dataRecv 
 
 # Get data continuously 
 # while True:

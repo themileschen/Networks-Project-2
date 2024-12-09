@@ -1,4 +1,9 @@
 '''
+ERRORS/SITUATION:
+- Seems to block all traffic instead of throttle
+- Log outputs error message for applying the throttling rule (line 94 of code)
+
+
 Basic network monitor using psutil and scapy with sending/receiving stats by process, including hogging flag
 
 network_monitor_2.py
@@ -8,6 +13,7 @@ https://thepythoncode.com/article/make-a-network-usage-monitor-in-python
 Extension with throttling: use pfctl to manage the Packet Filter (PF) firewall on macOS to slow down hogging processes
 
 Throttling: used significant assistance from ChatGPT and Perplexity AI 
+
 '''
 
 from scapy.all import *
@@ -72,16 +78,30 @@ def throttle_bandwidth(ip, pid, bandwidth, rate='50Kbit/s'):
     with open(LOG_FILE, 'a') as log_file:   # append mode: add to existing file
         try:
             # Loads PF firewall rules 
-            subprocess.run(f"sudo pfctl -f /etc/pf_throttle.conf", shell=True, check=True)
+            subprocess.run(f"sudo dnctl pipe 1 config bw {rate}", shell=True, check=True)
+
+            # subprocess.run(f"sudo sh -c 'cat /etc/pf_throttle2.conf && echo \"dummynet-anchor \\\"throttle\\\"\" && echo \"anchor \\\"throttle\\\"\"' | sudo pfctl -f -", shell=True, check=True)
 
             # Add IP address to the throttling table 
-            subprocess.run(f"sudo pfctl -t ip_table -T add {ip}", shell=True, check=True)
+            # subprocess.run(f"sudo pfctl -a throttle -f - <<< 'dummynet in ip from {ip} to any pipe 1'", shell=True, check=True)
+            # subprocess.run(f"sudo pfctl -a throttle -f - <<< 'dummynet out ip from {ip} to any pipe 1'", shell=True, check=True)
             
+            with open("dummynet_rules.txt", "w") as temp_file:
+                temp_file.write(f'dummynet in ip from {ip} to any pipe 1\n')
+                temp_file.write(f'dummynet out ip from {ip} to any pipe 1\n')
+    
+            # ERROR HERE 
+            subprocess.run("sudo pfctl -a throttle -f dummynet_rules.txt", shell=True, check=True)
+
+
             time_update = datetime.now() - START_TIME
             msg = f"Throttled IP {ip} to {rate}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
 
             throttled_pids.add(pid)     # add to set of currently throttled processes
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Failed to throttle IP {ip} with error: {e}\n"
+            log_file.write(error_msg)
         except Exception as e:
             error_msg = f"Failed to throttle IP {ip}: {e}\n"
             log_file.write(error_msg)
@@ -90,9 +110,13 @@ def throttle_bandwidth(ip, pid, bandwidth, rate='50Kbit/s'):
 def remove_throttle(ip, pid, bandwidth):
     with open(LOG_FILE, 'a') as log_file:
         try:
+            subprocess.run("sudo dnctl -q flush", shell=True, check=True)
             # Delete IP address from the throttling table 
-            subprocess.run(f"sudo pfctl -t ip_table -T delete {ip}", shell=True, check=True)
-            
+            subprocess.run(f"echo 'dummynet in ip from {ip} to any pipe 1' | sudo pfctl -a throttle -f -", shell=True, check=True, input='no\n'.encode())
+            subprocess.run(f"echo 'dummynet out ip from {ip} to any pipe 1' | sudo pfctl -a throttle -f -", shell=True, check=True, input='no\n'.encode())
+
+            subprocess.run("sudo pfctl -f /etc/pf_throttle2.conf", shell=True, check=True)
+
             # Remove from throttled set (if it still exists in the set)
             throttled_pids.discard(pid)
 
@@ -100,10 +124,10 @@ def remove_throttle(ip, pid, bandwidth):
             msg = f"Removed throttle for IP {ip}; Time = {time_update}; Current rate = {getSize(bandwidth)}\n"
             log_file.write(msg)
 
-            try:
-                subprocess.run("sudo pfctl -f /etc/pf.conf", shell=True, check=True)  # Reload PF rules
-            except:
-                print("Failed to re-fresh rules after successful IP removal")
+            # try:
+            #     subprocess.run("sudo dnctl flush", shell=True, check=True)  # Reload PF rules
+            # except:
+            #     print("Failed to re-fresh rules after successful IP removal")
 
         except Exception as e:
             error_msg = f"Failed to remove throttle for IP {ip}: {e}\n"
@@ -234,6 +258,12 @@ def restore_defaults():
         print("Default PF rules restored.")
     except subprocess.CalledProcessError as e:
         print(f"Failed to restore defaults: {e}")
+    try:
+            subprocess.run("sudo dnctl flush", shell=True, check=True)  # Reload dummynet rules
+    except:
+            print("Failed to flush dummynet rules")
+
+    
 
 # Return list of IPs for a PID 
 def get_ip(pid):

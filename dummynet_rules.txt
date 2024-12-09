@@ -1,0 +1,2 @@
+dummynet in ip from 142.250.138.155 to any pipe 1
+dummynet out ip from 142.250.138.155 to any pipe 1

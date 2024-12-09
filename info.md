@@ -27,6 +27,8 @@ Used to generate artificial traffic
 - `ip_throttle_conf.txt`
 - `ip_throttle.py`
 - `throttling_log.txt`
+- `dummynet_rules.txt`
+- `rules.txt`
 
 ## Convergence algorithm (WORK IN PROGRESS)
 - `convergence.py`
