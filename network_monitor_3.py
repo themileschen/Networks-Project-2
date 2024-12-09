@@ -130,7 +130,9 @@ def print_pid_to_traffic():
     df = pd.DataFrame(processes)  
     try:
         df = df.set_index('pid')
-        df.sort_values('Download', inplace=True, ascending=False)
+        df['Total'] = df['Download'] + df['Upload']
+        df.sort_values('Total', inplace=True, ascending=False)  # Sort by total traffic 
+        df = df.drop('Total', axis=1)   # Don't print total column
     except KeyError as e:
         pass    # DataFrame empty
 
