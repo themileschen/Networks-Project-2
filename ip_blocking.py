@@ -7,7 +7,8 @@ https://thepythoncode.com/article/make-a-network-usage-monitor-in-python
 
 Extension with traffic blocking: use pfctl to manage the Packet Filter (PF) firewall on macOS to temporarily block hogging processes
 
-Blocking: used significant assistance from ChatGPT and Perplexity AI 
+ChatGPT
+Perplexity AI
 '''
 
 from scapy.all import *
