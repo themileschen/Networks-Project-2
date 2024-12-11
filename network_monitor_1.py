@@ -77,8 +77,7 @@ def printSocketData():
         f"{len(TCPsocketInfo)}",
         f"{len(UDPsocketInfo)}"])
     print(card2)
-    # for conn in socketInfo:
-    #     print(conn)
+   
     socket_df.loc[len(socket_df)] = [
         len(totalSocketInfo),
         len(inetSocketInfo),
@@ -101,9 +100,6 @@ dropout = netStats1.dropout
 # Total data sent and received (measured at start of program) 
 SENT_START = dataSent
 RECV_START = dataRecv 
-
-# Get data continuously 
-# while True:
 
 # Get data for the user-defined time
 while (datetime.now() < END_TIME):
@@ -149,7 +145,7 @@ print(socket_df)
 plt.figure()
 plt.plot(inout_df.index, inout_df['Total Received (bytes)'], label = 'Total Received')
 plt.plot(inout_df.index, inout_df['Total Sent (bytes)'], label = 'Total Sent')
-plt.xlabel('Time')
+plt.xlabel('Time (s)')
 plt.ylabel('Data (bytes)')
 plt.title('Total Data Sent and Received')
 plt.legend()
@@ -157,7 +153,7 @@ plt.legend()
 plt.figure()
 plt.plot(inout_df.index, inout_df['Receiving (bytes/sec)'], label = 'Receiving')
 plt.plot(inout_df.index, inout_df['Sending (bytes/sec)'], label = 'Sending')
-plt.xlabel('Time')
+plt.xlabel('Time (s)')
 plt.ylabel('Bytes/sec')
 plt.title('Sending and Receiving Rates')
 plt.legend()
@@ -167,7 +163,7 @@ plt.plot(socket_df.index, socket_df['Total'], label = 'Total')
 plt.plot(socket_df.index, socket_df['inet'], label = 'inet')
 plt.plot(socket_df.index, socket_df['TCP'], label = 'TCP')
 plt.plot(socket_df.index, socket_df['UDP'], label = 'UDP')
-plt.xlabel('Time')
+plt.xlabel('Time (s)')
 plt.ylabel('Number of Connections')
 plt.title('Socket Connections')
 plt.legend()

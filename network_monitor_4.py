@@ -12,7 +12,8 @@ import psutil   # to access system details and process utilities
 from collections import defaultdict    # provides default values for missing keys 
 from threading import Thread 
 import os 
-import pandas as pd 
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Status of program
 program_running = True 
@@ -22,6 +23,10 @@ traffic_by_protocol = defaultdict(lambda: [0, 0])   # [Upload, Download]
 
 # To store previous stats
 traffic_df = None
+
+# To display results
+graph_df = pd.DataFrame()
+counter = 0
 
 # Get the MAC addresses of all network interfaces on the machine
 ifaces = conf.ifaces
@@ -45,7 +50,6 @@ UDP_PROTOCOLS = {
     69: "TFTP",
     123: "NTP",
     162: "SNMP",
-    520: "RIP"
 }
 
 # Returns the application-layer protocol (most of which operate on TCP or UDP in the transport layer)
@@ -78,13 +82,14 @@ def process_packet(packet):
         # Incoming packet
         traffic_by_protocol[protocol][1] += len(packet)
 
-# Iterate over process dictionary 
-# Use traffic_df to get previous total usage and calculate current speed
-# Append the process to processes list and convert to DataFrame for printing
+# Print to DataFrame and save for graphing 
 def printProtocols():
     global traffic_df
+    global graph_df 
+    global counter 
+    counter += 1
     protocols = []  # Initialize list of protocols 
-    for protocol, traffic in list(traffic_by_protocol.items()):
+    for protocol, traffic in list(traffic_by_protocol.items()): # For each protocol
         addProtocol = {
             'Protocol': protocol, 'Total Sent': traffic[0], 
             'Total Received': traffic[1]
@@ -96,6 +101,10 @@ def printProtocols():
             addProtocol['Sending Speed'] = traffic[0]
             addProtocol['Receiving Speed'] = traffic[1]
         protocols.append(addProtocol)
+
+        # For later display
+        total = traffic[0] + traffic[1]
+        graph_df.loc[counter, protocol] = total
 
     # Set up DataFrame and print 
     curr_df = pd.DataFrame(protocols)
@@ -124,6 +133,18 @@ def printStats():
         time.sleep(1)   # Aids in calculating speed (e.g. KB/sec)
         printProtocols()
 
+# Line graph 
+def graphResults():
+    plt.figure()
+    for protocol in graph_df.columns:
+        if 'TCP' not in protocol and 'UDP' not in protocol:  # Only plot application-layer protocols (not labeled 'Other TCP', etc.)
+            plt.plot(graph_df.index, graph_df[protocol], label=protocol)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Total Data Sent and Received (bytes)')
+    plt.title('Total Data by Application Protocol')
+    plt.legend()
+    plt.show()
+
 # Main
 if __name__ == '__main__':
     printing_thread = Thread(target=printStats, daemon=True)
@@ -135,6 +156,11 @@ if __name__ == '__main__':
     try: 
         sniff(prn=process_packet, store=False)  # Don't store captured packets in memory
     except KeyboardInterrupt:
+        pass
+    finally:
+        graphResults()
         program_running = False     # Whenever we exit sniff() function 
         printing_thread.join()
         
+    
+

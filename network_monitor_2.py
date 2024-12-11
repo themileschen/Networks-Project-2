@@ -51,7 +51,7 @@ while True:
         })
         current_usage = current_usage + uploadStat + downloadStat
 
-    if (current_usage > NETWORK_LIMIT_TEST):
+    if (current_usage > NETWORK_LIMIT):
         print("Network limit exceeded")
         exit(1)
 

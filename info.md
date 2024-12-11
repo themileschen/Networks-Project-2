@@ -3,7 +3,8 @@
 `sudo python network_monitor_2.py`\
 `sudo python network_monitor_3.py <threshold>` (or use default threshold of 0.5)\
 `sudo python ip_blocking.py`\
-`sudo python network_montior_4.py`
+`sudo python network_montior_4.py`\
+Use keyboard interrupt to terminate program (except `network_monitor_1.py`)
 
 ## Using iperf3 
 Used to generate artificial traffic 
