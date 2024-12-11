@@ -30,7 +30,7 @@ size = ['bytes', 'KB', 'MB', 'GB', 'TB']
 # Create empty DataFrames 
 inout_df = pd.DataFrame(columns=['Total Received (bytes)', 'Receiving (bytes/sec)', 'In Packet Dropping (%)',
                                  'Total Sent (bytes)', 'Sending (bytes/sec)', 'Out Packet Dropping (%)'])
-socket_df = pd.DataFrame(columns=['Total', 'inet', 'TCP', 'UDP'])
+socket_df = pd.DataFrame(columns=['Total', 'TCP', 'UDP'])
 
 # Function that returns bytes in a readable format
 def getSize(bytes):
@@ -67,20 +67,17 @@ def printData():
 # Prints socket data on the terminal
 def printSocketData():
     totalSocketInfo = psutil.net_connections()
-    inetSocketInfo = psutil.net_connections(kind='inet')
     TCPsocketInfo = psutil.net_connections(kind='tcp')
     UDPsocketInfo = psutil.net_connections(kind='udp')
     card2 = PrettyTable()
-    card2.field_names = ['Total Socket Connections', 'inet', 'TCP', 'UDP']
+    card2.field_names = ['Total Socket Connections', 'TCP', 'UDP']
     card2.add_row([f"{len(totalSocketInfo)}",
-        f"{len(inetSocketInfo)}",
         f"{len(TCPsocketInfo)}",
         f"{len(UDPsocketInfo)}"])
     print(card2)
    
     socket_df.loc[len(socket_df)] = [
         len(totalSocketInfo),
-        len(inetSocketInfo),
         len(TCPsocketInfo),
         len(UDPsocketInfo)
     ]
@@ -160,7 +157,6 @@ plt.legend()
 
 plt.figure()
 plt.plot(socket_df.index, socket_df['Total'], label = 'Total')
-plt.plot(socket_df.index, socket_df['inet'], label = 'inet')
 plt.plot(socket_df.index, socket_df['TCP'], label = 'TCP')
 plt.plot(socket_df.index, socket_df['UDP'], label = 'UDP')
 plt.xlabel('Time (s)')

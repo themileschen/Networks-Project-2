@@ -23,8 +23,17 @@ def getSize(bytes):
 NETWORK_LIMIT = 100 * 1024 * 1024   # 100 MB (standard limit)
 NETWORK_LIMIT_TEST = 50 * 1024     # 50 KB for testing
 
+# To store initial data (clearing any previous residue)
+SENT_START = {}
+RECV_START = {}
+
 # Get network I/O statistics as a namedtuple 
 netStats1 = psutil.net_io_counters(pernic=True)    # pernic=True: per interface
+
+# Get initial data 
+for iface, iface_io in netStats1.items():
+    SENT_START[iface] = iface_io.bytes_sent
+    RECV_START[iface] = iface_io.bytes_recv
 
 current_usage = 0
 
@@ -42,11 +51,15 @@ while True:
     for iface, iface_io in netStats1.items():
         uploadStat = netStats2[iface].bytes_sent - iface_io.bytes_sent 
         downloadStat = netStats2[iface].bytes_recv - iface_io.bytes_recv 
+        if iface not in RECV_START:
+            RECV_START[iface] = 0
+        if iface not in SENT_START:
+            SENT_START[iface] = 0
         data.append({
             'Interface': iface, 
-            'Total Received': getSize(netStats2[iface].bytes_recv),
+            'Total Received': getSize(netStats2[iface].bytes_recv - RECV_START[iface]),
             'Receiving': f"{getSize(downloadStat)}/s",
-            'Total Sent': getSize(netStats2[iface].bytes_sent),
+            'Total Sent': getSize(netStats2[iface].bytes_sent - SENT_START[iface]),
             'Sending': f"{getSize(uploadStat)}/s"
         })
         current_usage = current_usage + uploadStat + downloadStat
