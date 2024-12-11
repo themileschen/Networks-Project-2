@@ -42,7 +42,6 @@ TCP_PROTOCOLS = {
     110: "POP",
     161: "SNMP",
     443: "HTTPS",
-    6667: "IRC"
 }
 UDP_PROTOCOLS = {
     53: "DNS",
